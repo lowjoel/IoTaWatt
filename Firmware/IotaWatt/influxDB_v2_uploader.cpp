@@ -88,7 +88,12 @@ uint32_t influxDB_v2_uploader::handle_checkQuery_s(){
 
     // Deal with failure.
 
-    if(_request->responseHTTPcode() != 200){
+    if(_request->responseHTTPcode() == 404){
+        _lastSent = UTCtime();
+        log("%s: Start stateless posting %s", _id, localDateString(_lastSent + _interval).c_str());
+        _state = write_s;
+        return 1;
+    }else if(_request->responseHTTPcode() != 200){
         trace(T_influx2,31);
         delete[] _statusMessage;
         _statusMessage = charstar(F("Last sent query failed. HTTPcode "), String(_request->responseHTTPcode()).c_str());
